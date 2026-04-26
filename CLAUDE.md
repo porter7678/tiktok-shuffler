@@ -1,0 +1,1 @@
+Read the SPEC.md and TODO.md files at the beginning of a session.

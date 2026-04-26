@@ -1,4 +1,5 @@
 import os
+import random
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -14,3 +15,8 @@ _videos: list[dict] = load_videos(_json_path)
 @app.get("/api/videos")
 def get_videos():
     return {"total": len(_videos), "videos": _videos}
+
+
+@app.get("/api/random")
+def get_random():
+    return random.choice(_videos)

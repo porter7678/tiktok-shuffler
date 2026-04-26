@@ -1,16 +1,11 @@
-import { useEffect, useState } from 'react'
+import './App.css'
+import ShuffleView from './views/ShuffleView'
 
 export default function App() {
-  const [count, setCount] = useState(null)
-
-  useEffect(() => {
-    fetch('/api/videos')
-      .then(r => r.json())
-      .then(d => {
-        console.log(`Loaded ${d.total} videos`)
-        setCount(d.total)
-      })
-  }, [])
-
-  return <div>TikTok Shuffler — {count ?? 'loading…'} videos</div>
+  return (
+    <div className="app">
+      <h1 className="title">TikTok Shuffler</h1>
+      <ShuffleView />
+    </div>
+  )
 }

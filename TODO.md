@@ -18,76 +18,89 @@ Get the skeleton in place so both backend and frontend can run, talk to each oth
   - [x] `App.jsx` fetches `/api/videos` on mount, logs the count to console
 - [x] Write `README.md` with setup and run instructions
 
-**Checkpoint:** Run backend (`uvicorn backend.main:app --reload --port 8000`) and frontend (`npm run dev`). Confirm `/api/videos` returns all ~4,666 videos and the React app logs the count.
+**Checkpoint:** Run backend and frontend. Confirm `/api/videos` returns all ~4,666 videos and the React app logs the count.
 
 ---
 
 ## Milestone 2: Shuffle View (core feature) ✅
 
-Build the primary feature end-to-end before touching the grid.
-
 - [x] `GET /api/random` endpoint — returns one randomly selected video object
-- [x] `VideoEmbed.jsx` component — renders TikTok embed iframe with correct attributes (`allowFullScreen`); accepts `embedUrl` and `key` as props
-- [x] `ShuffleView.jsx`
-  - [x] On mount, auto-fetches `/api/random` and loads the first video
-  - [x] Renders `VideoEmbed` centered, ~390px wide
-  - [x] "Shuffle" button — fetches `/api/random`, updates current video
-  - [x] "Replay" button — remounts the iframe by briefly clearing then restoring `src`
-  - [x] "Open on TikTok" link — opens `original_url` in new tab
-  - [x] Loading state while embed is initializing
-- [x] `App.jsx` renders `ShuffleView` as the default view (no nav switching yet)
+- [x] `VideoEmbed.jsx` component — renders TikTok embed iframe
+- [x] `ShuffleView.jsx` — auto-fetch on mount, Shuffle/Replay/"Open on TikTok" controls
+- [x] Loading state while embed is initializing
 
 **Checkpoint:** Open the app. A random TikTok loads automatically. Shuffle picks a new one. Replay reloads the current video. Open on TikTok works.
 
 ---
 
-## Milestone 3: Grid View — Structure & Layout
+## Milestone 3: Offline Downloads ✅ (in progress)
 
-Build the grid without thumbnails first (placeholders only), so the layout and month grouping are solid before adding async complexity.
+Download all liked videos to local storage so the app can run without TikTok network calls.
 
-- [ ] `GET /api/videos` response confirmed sorted newest-first
-- [ ] `GridView.jsx`
-  - [ ] Groups videos by year-month
-  - [ ] Renders a sticky month section header for each group (e.g. `"April 2026 · 34 videos"`)
-  - [ ] Renders a 3-column CSS grid of placeholder tiles
-  - [ ] Each placeholder tile is a fixed square (160×160px), dark gray background
-- [ ] `MonthScrubber.jsx`
-  - [ ] Renders a fixed left-side column listing all months with videos (newest at top), formatted as `Apr '26`
-  - [ ] Clicking a month label scrolls the grid to that month's section header
-  - [ ] Uses `IntersectionObserver` on section headers to highlight the currently visible month as the user scrolls
+- [x] `uv sync` picks up new `yt-dlp` dependency
+- [x] `scripts/download_tiktoks.py` — yt-dlp download script
+  - [x] Imports `load_videos` from `backend.data_loader` (no duplication)
+  - [x] Per-video: `<id>.mp4`, `<id>.info.json`, `<id>.jpg` written to `TIKTOK_VIDEO_DIR`
+  - [x] Idempotent: skip if video file already exists; skip if in failure manifest (unless `--retry-failed`)
+  - [x] Failure manifest at `<output_dir>/_failures.json`, flushed every 10 failures so Ctrl-C doesn't lose progress
+  - [x] CLI flags: `--output-dir`, `--json-path`, `--limit N`, `--retry-failed`
+  - [x] Per-item progress line + overall elapsed/ETA timing
+- [x] `scripts/README.md` — prerequisites, usage examples, output layout, WSL path note
+- [ ] First full run completes; `_failures.json` reviewed (~150 downloaded so far, run in progress)
+
+**Checkpoint:** `uv run python scripts/download_tiktoks.py --limit 10` downloads 10 videos (or fewer if some fail). Re-run is fully skipped. Full run finishes without crashing.
+
+---
+
+## Milestone 4: Backend Serves Local Files
+
+Cut the backend over from JSON-only to serving on-disk videos.
+
+- [ ] Scan `TIKTOK_VIDEO_DIR` at startup for `*.mp4` files; build available-ID set
+- [ ] Filter `load_videos` output to on-disk IDs only
+- [ ] Replace `embed_url` field with `local_video_url` (`/media/<id>.mp4`) and `local_thumbnail_url` (`/media/<id>.jpg`)
+- [ ] Mount `StaticFiles` at `/media` pointing to `TIKTOK_VIDEO_DIR`
+- [ ] Remove `GET /api/thumbnail/{video_id}` (oEmbed proxy no longer needed)
+- [ ] Add `TIKTOK_VIDEO_DIR` env var (default `/mnt/d/tiktoks`)
+- [ ] Proxy `/media` in `vite.config.js`
+
+**Checkpoint:** `GET /api/random` returns a `local_video_url`; `curl http://localhost:8000/<local_video_url>` streams the mp4.
+
+---
+
+## Milestone 5: Frontend Plays Local Files
+
+Replace the TikTok embed iframe with a native `<video>` element.
+
+- [ ] Add `VideoPlayer.jsx` — `<video src={src} controls loop autoPlay>`, remount on key change
+- [ ] Update `ShuffleView.jsx` to use `VideoPlayer` instead of `VideoEmbed`
+- [ ] Update `ThumbnailTile.jsx` — `src` is now `local_thumbnail_url` from the API response (no lazy IntersectionObserver fetch needed)
+- [ ] Remove `VideoEmbed.jsx` and the oEmbed thumbnail-fetch logic
+- [ ] Remove "Replay" button (native `<video controls>` handles that)
+
+**Checkpoint:** Open the app. A random video plays in a native player. Shuffle loads a new one. Grid thumbnails show from local files.
+
+---
+
+## Milestone 6: Grid View — Structure & Layout
+
+*(Previously Milestone 3 — targeting embed architecture, now updated for local files.)*
+
+- [ ] `GridView.jsx` — groups videos by year-month, sticky month headers, 3-column CSS grid of `ThumbnailTile` placeholders
+- [ ] `MonthScrubber.jsx` — fixed left column, click-to-scroll, `IntersectionObserver` highlight
 - [ ] Nav bar in `App.jsx` — toggle between Shuffle and Grid views
 
-**Checkpoint:** Grid view shows all ~4,666 placeholder tiles grouped by month. Month scrubber scrolls and highlights correctly. Nav toggles between views cleanly.
+**Checkpoint:** Grid shows all available videos grouped by month. Scrubber scrolls and highlights correctly.
 
 ---
 
-## Milestone 4: Grid View — Thumbnails
-
-Layer in async thumbnail loading on top of the working grid.
-
-- [ ] `GET /api/thumbnail/{video_id}` endpoint
-  - [ ] Fetches TikTok oEmbed API server-side: `https://www.tiktok.com/oembed?url=https://www.tiktok.com/video/{video_id}`
-  - [ ] Returns `{ "thumbnail_url": "..." }` or `{ "thumbnail_url": null }` on failure/timeout
-  - [ ] Caches results in-memory (both hits and nulls) so re-fetches are free
-- [ ] `ThumbnailTile.jsx`
-  - [ ] Uses `IntersectionObserver` — only fires the thumbnail fetch when tile enters viewport
-  - [ ] States: placeholder → loading → image (or dead placeholder with broken-image icon)
-  - [ ] Hover effect: slight scale or brightness change
-  - [ ] On click: switch to Shuffle view and load this specific video
-
-**Checkpoint:** Scroll through the grid — thumbnails load progressively as tiles enter view. Clicking a tile opens it in Shuffle view. Dead/private videos show a subtle broken state.
-
----
-
-## Milestone 5: Polish & README Finalization
-
-Tighten up the experience and make sure the project is easy to hand to someone else.
+## Milestone 7: Polish & README Finalization
 
 - [ ] Visual consistency pass — fonts, colors, spacing cohesive across both views
 - [ ] Error states: if `/api/random` fails, show an error message with a retry button
-- [ ] Handle the case where the JSON file is missing or malformed — backend should log a clear error on startup rather than crashing silently
-- [ ] Build frontend for production (`npm run build`) and confirm FastAPI serves it correctly from `frontend/dist/`
-- [ ] Update README with any gotchas discovered during development
-- [ ] Test full production flow: only the backend running, no Vite dev server
+- [ ] Handle missing/malformed JSON file — backend logs a clear error on startup
+- [ ] Build frontend for production and confirm FastAPI serves it from `frontend/dist/`
+- [ ] Update README with final setup flow (including downloader step)
+- [ ] Test full production flow: only uvicorn running, no Vite dev server
 
-**Checkpoint:** Run `npm run build`, start uvicorn, open `http://localhost:8000`. Everything works from the compiled build with no dev server.
+**Checkpoint:** `npm run build` + uvicorn + open `http://localhost:8000`. Everything works from the compiled build.

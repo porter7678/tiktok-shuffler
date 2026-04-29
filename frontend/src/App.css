@@ -3,27 +3,70 @@
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  padding: 24px 16px 48px;
+  padding: 16px 24px 32px;
   box-sizing: border-box;
 }
 
 .title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.5px;
-  margin: 0 0 24px;
+  margin: 0 0 16px;
+  align-self: flex-start;
 }
 
 .shuffle-view {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 20px;
+  gap: 40px;
+}
+
+.side-info {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  align-self: stretch;
+  justify-content: center;
+}
+
+.side-controls {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  align-self: stretch;
+  justify-content: center;
+}
+
+.liked-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.liked-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #666;
+}
+
+.liked-date {
+  font-size: 22px;
+  font-weight: 600;
+  color: #e5e5e5;
+  line-height: 1.2;
 }
 
 .embed-wrapper {
   width: 390px;
   height: 740px;
+  flex-shrink: 0;
 }
 
 .embed-placeholder {
@@ -38,13 +81,8 @@
   border-radius: 8px;
 }
 
-.controls {
-  display: flex;
-  gap: 12px;
-}
-
 .shuffle-btn {
-  padding: 12px 32px;
+  padding: 14px 20px;
   font-size: 18px;
   font-weight: 600;
   background: #fe2c55;
@@ -52,6 +90,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  width: 100%;
 }
 
 .shuffle-btn:hover:not(:disabled) {
@@ -66,6 +105,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  width: 100%;
 }
 
 .replay-btn:hover:not(:disabled) {
@@ -88,18 +128,6 @@
 .tiktok-link:hover {
   color: #aaa;
   text-decoration: underline;
-}
-
-.liked-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.liked-date {
-  font-size: 22px;
-  font-weight: 600;
-  color: #e5e5e5;
 }
 
 .recency-meter {

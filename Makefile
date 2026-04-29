@@ -1,14 +1,15 @@
 SHELL := /bin/bash
 NVM_SH := $(HOME)/.nvm/nvm.sh
 
-.PHONY: dev stop install build prod help
+.PHONY: dev stop install build prod download help
 
 help:
-	@echo "make dev      Start backend + frontend in dev mode (Ctrl+C to stop both)"
-	@echo "make stop     Kill running dev servers"
-	@echo "make install  Install all dependencies"
-	@echo "make build    Build frontend for production"
-	@echo "make prod     Build and serve in production mode"
+	@echo "make dev        Start backend + frontend in dev mode (Ctrl+C to stop both)"
+	@echo "make stop       Kill running dev servers"
+	@echo "make install    Install all dependencies"
+	@echo "make build      Build frontend for production"
+	@echo "make prod       Build and serve in production mode"
+	@echo "make download   Download all liked TikToks to /mnt/d/tiktoks (resumable)"
 
 dev:
 	@source $(NVM_SH); \
@@ -30,3 +31,6 @@ build:
 
 prod: build
 	uv run uvicorn backend.main:app --port 8000
+
+download:
+	uv run python scripts/download_tiktoks.py $(ARGS)

@@ -1,8 +1,10 @@
 # TikTok Liked Videos Browser — Spec
 
+> **Migration status:** The downloader (`scripts/download_tiktoks.py`) is implemented and this SPEC describes the **target** offline-first architecture. The backend and frontend still use the TikTok embed flow; cutover to local file playback is the next milestone.
+
 ## Overview
 
-A local web app for browsing and shuffling your TikTok liked videos. The data source is a TikTok export JSON file (`user_data_tiktok.json`). Videos are played via TikTok's public embed player — no downloads required. The app runs locally via a FastAPI backend.
+A local web app for browsing and shuffling your TikTok liked videos. The data source is a TikTok export JSON file (`user_data_tiktok.json`) — used only to get the list of video IDs to download. Videos are downloaded offline using yt-dlp to a local directory (default: `/mnt/d/tiktoks`). During browsing, playback uses a plain `<video>` element served by FastAPI — no embed player, no TikTok network calls required.
 
 **Primary feature: shuffle.** The grid/timeline view is secondary.
 
@@ -15,18 +17,20 @@ A local web app for browsing and shuffling your TikTok liked videos. The data so
 | Backend | Python 3.11+, FastAPI, Uvicorn |
 | Frontend | React (Vite), plain CSS (no UI library) |
 | Data | Local JSON file — no database |
-| Video playback | TikTok embed (`https://www.tiktok.com/embed/v2/{video_id}`) |
-| Thumbnails | TikTok oEmbed API, proxied through backend, cached in memory |
+| Downloader | yt-dlp (Python library), `scripts/download_tiktoks.py` |
+| Local video storage | `/mnt/d/tiktoks/` (configurable via `TIKTOK_VIDEO_DIR`) |
+| Video playback | Local `<video>` tag; files served by FastAPI `StaticFiles` |
+| Thumbnails | `<id>.jpg` written by yt-dlp alongside the video — no oEmbed calls |
 
 ---
 
 ## Project Structure
 
 ```
-tiktok-browser/
+tiktok-shuffler/
 ├── backend/
 │   ├── main.py            # FastAPI app
-│   └── data_loader.py     # Parses user_data_tiktok.json
+│   └── data_loader.py     # Parses user_data_tiktok.json + checks disk for available videos
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx
@@ -34,14 +38,20 @@ tiktok-browser/
 │   │   │   ├── ShuffleView.jsx
 │   │   │   └── GridView.jsx
 │   │   └── components/
-│   │       ├── VideoEmbed.jsx
+│   │       ├── VideoPlayer.jsx     # <video> tag (replaces VideoEmbed iframe)
 │   │       ├── ThumbnailTile.jsx
 │   │       └── MonthScrubber.jsx
 │   ├── index.html
 │   ├── vite.config.js
 │   └── package.json
-├── user_data_tiktok.json  # Place export file here (or configure path)
+├── scripts/
+│   ├── download_tiktoks.py # yt-dlp download script
+│   └── README.md           # downloader usage instructions
+├── user_data_tiktok.json   # TikTok export (place here or set TIKTOK_JSON_PATH)
 └── README.md
+
+# Outside the repo (not committed):
+# /mnt/d/tiktoks/           Downloaded videos, thumbnails, and metadata
 ```
 
 ---
@@ -64,66 +74,87 @@ Each raw item:
 {
   "id": "7631024397754600735",
   "liked_at": "2026-04-25T23:35:34",
-  "embed_url": "https://www.tiktok.com/embed/v2/7631024397754600735",
+  "local_video_url": "/media/7631024397754600735.mp4",
+  "local_thumbnail_url": "/media/7631024397754600735.jpg",
   "original_url": "https://www.tiktokv.com/share/video/7631024397754600735/"
 }
 ```
 
 **Extraction logic:** Parse the numeric video ID from the URL path segment `/video/(\d+)/`.
 
-**Total videos:** ~4,666, spanning May 2020 – April 2026.
+**Available videos:** Only videos whose `.mp4` exists on disk are included in API responses. Videos in `_failures.json` or not yet downloaded are excluded.
+
+**Total videos in export:** ~4,666, spanning May 2020 – April 2026.
+
+---
+
+## Downloader (`scripts/download_tiktoks.py`)
+
+Downloads the full liked-video list to `TIKTOK_VIDEO_DIR`. See `scripts/README.md` for usage.
+
+### Per-video artifacts
+For each video ID, yt-dlp writes three files to the output directory:
+- `<id>.mp4` — video file (best available quality)
+- `<id>.info.json` — full yt-dlp metadata dump (uploader, description, duration, etc.)
+- `<id>.jpg` — thumbnail image
+
+### Failure manifest
+Videos that can't be downloaded (deleted, private, region-locked) are recorded in `_failures.json`:
+```json
+{
+  "7631024397754600735": {
+    "error": "[TikTok] 7631024397754600735: Video is unavailable",
+    "tried_at": "2026-04-28T21:30:00+00:00"
+  }
+}
+```
+Re-runs skip known failures unless `--retry-failed` is passed.
 
 ---
 
 ## Backend (FastAPI)
 
 ### Startup
-- Load and parse `user_data_tiktok.json` once at startup into a list of video objects, sorted newest-first.
-- Keep an in-memory thumbnail cache: `dict[video_id -> thumbnail_url | None]`.
+- Load and parse `user_data_tiktok.json` once at startup.
+- Scan `TIKTOK_VIDEO_DIR` for `.mp4` files; build a set of available video IDs.
+- Only expose videos that are both in the JSON and on disk.
+- Sort available videos newest-first.
 
 ### Endpoints
 
 #### `GET /api/videos`
-Returns the full list of parsed video objects (no thumbnails).
+Returns all available (on-disk) video objects.
 
 Response:
 ```json
 {
-  "total": 4666,
+  "total": 3812,
   "videos": [
     {
       "id": "...",
       "liked_at": "2026-04-25T23:35:34",
-      "embed_url": "https://www.tiktok.com/embed/v2/...",
+      "local_video_url": "/media/....mp4",
+      "local_thumbnail_url": "/media/....jpg",
       "original_url": "https://..."
     }
   ]
 }
 ```
 
-#### `GET /api/thumbnail/{video_id}`
-Fetches the thumbnail URL for a single video by proxying TikTok's oEmbed API.
-
-- **oEmbed endpoint:** `https://www.tiktok.com/oembed?url=https://www.tiktok.com/video/{video_id}`
-- Returns `thumbnail_url` from oEmbed JSON response.
-- Cache result in memory (even `null` for dead videos) so repeat calls don't re-fetch.
-- Set a reasonable timeout (5s). On failure/timeout, return `{"thumbnail_url": null}`.
-
-Response:
-```json
-{ "thumbnail_url": "https://p16-sign.tiktokcdn-us.com/..." }
-```
-
 #### `GET /api/random`
-Returns a single random video object from the full list.
+Returns a single random video object from the available list.
 
 Response: same shape as a single item from `/api/videos`.
 
-#### Static files
-Serve the compiled React frontend from `frontend/dist/` at the root path `/`.
+#### `GET /media/{filename}` (StaticFiles mount)
+Serves files directly from `TIKTOK_VIDEO_DIR`. FastAPI's `StaticFiles` is mounted at `/media` pointing to the configured download directory.
 
 ### Configuration
-Accept the JSON file path via an environment variable `TIKTOK_JSON_PATH`, defaulting to `./user_data_tiktok.json`.
+
+| Env var | Default | Description |
+|---|---|---|
+| `TIKTOK_JSON_PATH` | `./user_data_tiktok.json` | Path to TikTok data export |
+| `TIKTOK_VIDEO_DIR` | `/mnt/d/tiktoks` | Directory containing downloaded videos |
 
 ### Running
 ```bash
@@ -135,34 +166,30 @@ uvicorn backend.main:app --reload --port 8000
 ## Frontend (React + Vite)
 
 ### Vite Dev Proxy
-In `vite.config.js`, proxy `/api` → `http://localhost:8000` so the dev server and backend don't conflict with CORS.
+In `vite.config.js`, proxy `/api` and `/media` → `http://localhost:8000`.
 
 ### App Shell (`App.jsx`)
 - Fetches `/api/videos` once on mount. Stores video list in state.
 - Two views, toggled by a top nav bar: **Shuffle** (default) and **Grid**.
-- The nav bar is minimal — just a logo/title and two view toggle buttons.
 
 ---
 
 ## View 1: Shuffle (default view)
 
-This is the primary feature. The UX goal is effortless, one-at-a-time video discovery.
-
 ### Layout
-- Full-width, centered video embed (~390px wide, 16:9 or TikTok's native aspect ratio).
+- Full-width, centered video player (~390px wide).
 - Large **"Shuffle"** button below the player.
 - A small **"Open on TikTok"** link beneath that opens `original_url` in a new tab.
 
 ### Behavior
 1. On first load, automatically pick a random video and load it.
 2. The "Shuffle" button calls `/api/random` and loads a new video.
-3. **Replay behavior:** TikTok's embed player loops by default on most videos. If the user wants manual replay, provide a "Replay" button that reloads the iframe `src` (set `src` to empty then back to the embed URL). Do NOT auto-advance to the next video.
-4. While the embed is loading, show a simple loading state (spinner or placeholder).
+3. The `<video>` element has `controls loop` — the browser's native controls handle replay.
 
-### VideoEmbed Component
-- Renders an `<iframe>` with the TikTok embed URL.
-- Props: `embedUrl`, `key` (change key to force remount on new video).
-- iframe attributes: `allow="autoplay"`, `allowFullScreen`.
+### VideoPlayer Component
+- Renders a `<video>` element pointing to `local_video_url`.
+- Props: `src`, `key` (change key to force remount on new video).
+- Attributes: `controls`, `loop`, `autoPlay`.
 
 ---
 
@@ -175,22 +202,21 @@ A scrollable grid of video thumbnails, organized chronologically with a month sc
 - Right side: scrollable thumbnail grid — **3 columns**, thumbnails are square-ish tiles (roughly 9 visible on screen at once).
 
 ### Month Scrubber (`MonthScrubber.jsx`)
-- Lists all months that have at least one liked video, formatted as e.g. `Apr '26`, `Mar '26`, etc., newest at top.
+- Lists all months that have at least one available video, formatted as e.g. `Apr '26`.
 - Clicking a month label scrolls the grid to that month's section.
-- As the user scrolls the grid, the scrubber highlights the currently visible month.
-- Use `IntersectionObserver` on month-section headers in the grid to drive the active highlight.
+- Uses `IntersectionObserver` on month-section headers to highlight the currently visible month.
 
 ### Grid (`GridView.jsx`)
-- Videos are grouped by month. Each group has a sticky month header (e.g. `"April 2026 · 34 videos"`).
+- Videos are grouped by month, each group has a sticky month header (e.g. `"April 2026 · 34 videos"`).
 - Each tile is a `ThumbnailTile` component.
-- Clicking a tile switches to Shuffle view and loads that specific video (pass the video object to the Shuffle view).
+- Clicking a tile switches to Shuffle view and loads that specific video.
 
 ### ThumbnailTile Component (`ThumbnailTile.jsx`)
-- Shows a fixed-size square tile (e.g. 160×160px or responsive).
-- On mount (when tile enters viewport via `IntersectionObserver`), fetch `/api/thumbnail/{video_id}`.
+- Shows a fixed-size square tile (160×160px or responsive).
+- `src` is `local_thumbnail_url` — no lazy-fetch needed, the URL is already known.
 - While loading: show a dark gray placeholder.
 - If thumbnail loads: show the image, cropped/centered.
-- If thumbnail is null (dead video): show the placeholder with a subtle ✕ or broken-image icon.
+- If thumbnail is null (video has no `.jpg` on disk): show the placeholder with a broken-image icon.
 - On hover: slight scale or brightness effect.
 
 ---
@@ -200,40 +226,38 @@ A scrollable grid of video thumbnails, organized chronologically with a month sc
 ### Video ID extraction
 Regex: `r'/video/(\d+)'` applied to each `link` field. If no match, skip that entry (log a warning).
 
-### Thumbnail fetching strategy
-Do **not** eagerly fetch all 4,666 thumbnails. Use `IntersectionObserver` in `ThumbnailTile` so thumbnails are only fetched when their tile scrolls into view. This avoids hammering TikTok's oEmbed API on load.
-
-### TikTok embed behavior quirks
-- The embed player is a sandboxed iframe. There is no reliable JS API to detect "video ended" without listening to `postMessage` events, which TikTok does not document publicly. Do not try to detect video end. Instead, provide a visible "Replay" button.
-- The embed player shows TikTok's own UI (play button, like, share, etc.) — this is expected and fine.
-- Some videos will show "Video unavailable" inside the iframe — this is expected for deleted/private videos. No special handling needed for v1.
+### On-disk availability check
+At startup, scan `TIKTOK_VIDEO_DIR` for `*.mp4` files and build a `set[str]` of IDs. Only videos in that set are returned by the API. Re-scan on restart (no live watching needed for v1).
 
 ### CORS
-The oEmbed fetch is done server-side (FastAPI) to avoid browser CORS restrictions on TikTok's CDN.
+Not a concern for local file serving — everything is same-origin through FastAPI.
 
 ### No persistence needed
-No database. All state is in-memory. The video list is re-parsed from JSON on each server start.
+No database. All state is in-memory. Re-parsed from JSON + disk scan on each server start.
 
 ---
 
 ## README (for the project)
 
 Should include:
-1. Prerequisites: Python 3.11+, Node 18+
+1. Prerequisites: Python 3.11+, Node 18+, ffmpeg, uv
 2. Setup steps:
-   - Place `user_data_tiktok.json` in project root (or set `TIKTOK_JSON_PATH` env var)
-   - `pip install fastapi uvicorn httpx`
+   - Place `user_data_tiktok.json` in project root
+   - `uv sync`
    - `cd frontend && npm install && npm run build`
+   - Run the downloader: `uv run python scripts/download_tiktoks.py` (see `scripts/README.md`)
 3. Running: `uvicorn backend.main:app --port 8000` then open `http://localhost:8000`
-4. Dev mode: run backend with `--reload`, run frontend with `npm run dev` (proxies `/api` to port 8000)
+4. Dev mode: backend with `--reload`, frontend with `npm run dev`
 
 ---
 
-## Out of Scope for v1
+## Out of Scope
 
-- Dead link detection / pre-checking
+- Re-downloading videos that change after the first download
+- Dead link detection / pre-checking at browse time
 - Filtering or search
-- Favorited videos list
-- Local video download / yt-dlp integration
+- Favorited videos list (separate from liked)
 - Any authentication
 - Deployment / hosting
+- Disk-space monitoring for the video directory
+- Backend/frontend migration off the iframe embed *(the next milestone after download is complete)*

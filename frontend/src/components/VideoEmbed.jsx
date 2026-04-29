@@ -1,8 +1,7 @@
 export default function VideoEmbed({ embedUrl }) {
   return (
     <iframe
-      src={embedUrl}
-      allow="autoplay"
+      src={`${embedUrl}?autoplay=0`}
       allowFullScreen
       width={390}
       height={740}

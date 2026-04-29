@@ -90,8 +90,33 @@
   text-decoration: underline;
 }
 
+.liked-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .liked-date {
   font-size: 22px;
   font-weight: 600;
   color: #e5e5e5;
 }
+
+.recency-meter {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+}
+
+.recency-bar {
+  width: 6px;
+  border-radius: 1px;
+  transition: background 0.2s;
+}
+
+.recency-bar:nth-child(1) { height: 30%; }
+.recency-bar:nth-child(2) { height: 45%; }
+.recency-bar:nth-child(3) { height: 60%; }
+.recency-bar:nth-child(4) { height: 80%; }
+.recency-bar:nth-child(5) { height: 100%; }

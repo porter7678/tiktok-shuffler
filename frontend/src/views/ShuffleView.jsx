@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import VideoEmbed from '../components/VideoEmbed'
+import RecencyMeter from '../components/RecencyMeter'
 
 export default function ShuffleView() {
   const [video, setVideo] = useState(null)
@@ -21,9 +22,12 @@ export default function ShuffleView() {
   return (
     <div className="shuffle-view">
       {video && (
-        <span className="liked-date">
-          Liked {new Date(video.liked_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-        </span>
+        <div className="liked-row">
+          <RecencyMeter recency={video.recency} />
+          <span className="liked-date">
+            Liked {new Date(video.liked_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </span>
+        </div>
       )}
       <div className="embed-wrapper">
         {loading || !video

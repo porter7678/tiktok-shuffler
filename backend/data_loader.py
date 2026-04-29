@@ -33,4 +33,15 @@ def load_videos(path: str | Path) -> list[dict]:
         })
 
     videos.sort(key=lambda v: v["liked_at"], reverse=True)
+
+    if len(videos) > 1:
+        timestamps = [datetime.fromisoformat(v["liked_at"]) for v in videos]
+        oldest = min(timestamps)
+        span = (max(timestamps) - oldest).total_seconds()
+        for v, ts in zip(videos, timestamps):
+            v["recency"] = (ts - oldest).total_seconds() / span if span > 0 else 1.0
+    else:
+        for v in videos:
+            v["recency"] = 1.0
+
     return videos

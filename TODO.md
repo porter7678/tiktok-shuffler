@@ -4,38 +4,38 @@ Work through these milestones in order. Each one should leave the app in a worki
 
 ---
 
-## Milestone 1: Project Scaffold
+## Milestone 1: Project Scaffold ✅
 
 Get the skeleton in place so both backend and frontend can run, talk to each other, and confirm the data loads correctly.
 
-- [ ] Create project directory structure as specified in SPEC.md
-- [ ] Initialize Python backend: `backend/main.py` and `backend/data_loader.py`
-  - [ ] `data_loader.py` parses `user_data_tiktok.json`, extracts the Like List, and returns a list of parsed video objects (id, liked_at, embed_url, original_url)
-  - [ ] Video ID extraction via regex on the `link` field; skip and warn on non-matches
-  - [ ] `main.py` loads data at startup, exposes a single `GET /api/videos` endpoint
-- [ ] Initialize React frontend with Vite
-  - [ ] `vite.config.js` proxy: `/api` → `http://localhost:8000`
-  - [ ] `App.jsx` fetches `/api/videos` on mount, logs the count to console
-- [ ] Write `README.md` with setup and run instructions
+- [x] Create project directory structure as specified in SPEC.md
+- [x] Initialize Python backend: `backend/main.py` and `backend/data_loader.py`
+  - [x] `data_loader.py` parses `user_data_tiktok.json`, extracts the Like List, and returns a list of parsed video objects (id, liked_at, embed_url, original_url)
+  - [x] Video ID extraction via regex on the `link` field; skip and warn on non-matches
+  - [x] `main.py` loads data at startup, exposes a single `GET /api/videos` endpoint
+- [x] Initialize React frontend with Vite
+  - [x] `vite.config.js` proxy: `/api` → `http://localhost:8000`
+  - [x] `App.jsx` fetches `/api/videos` on mount, logs the count to console
+- [x] Write `README.md` with setup and run instructions
 
 **Checkpoint:** Run backend (`uvicorn backend.main:app --reload --port 8000`) and frontend (`npm run dev`). Confirm `/api/videos` returns all ~4,666 videos and the React app logs the count.
 
 ---
 
-## Milestone 2: Shuffle View (core feature)
+## Milestone 2: Shuffle View (core feature) ✅
 
 Build the primary feature end-to-end before touching the grid.
 
-- [ ] `GET /api/random` endpoint — returns one randomly selected video object
-- [ ] `VideoEmbed.jsx` component — renders TikTok embed iframe with correct attributes (`allow="autoplay"`, `allowFullScreen`); accepts `embedUrl` and `key` as props
-- [ ] `ShuffleView.jsx`
-  - [ ] On mount, auto-fetches `/api/random` and loads the first video
-  - [ ] Renders `VideoEmbed` centered, ~390px wide
-  - [ ] "Shuffle" button — fetches `/api/random`, updates current video
-  - [ ] "Replay" button — remounts the iframe by briefly clearing then restoring `src`
-  - [ ] "Open on TikTok" link — opens `original_url` in new tab
-  - [ ] Loading state while embed is initializing
-- [ ] `App.jsx` renders `ShuffleView` as the default view (no nav switching yet)
+- [x] `GET /api/random` endpoint — returns one randomly selected video object
+- [x] `VideoEmbed.jsx` component — renders TikTok embed iframe with correct attributes (`allowFullScreen`); accepts `embedUrl` and `key` as props
+- [x] `ShuffleView.jsx`
+  - [x] On mount, auto-fetches `/api/random` and loads the first video
+  - [x] Renders `VideoEmbed` centered, ~390px wide
+  - [x] "Shuffle" button — fetches `/api/random`, updates current video
+  - [x] "Replay" button — remounts the iframe by briefly clearing then restoring `src`
+  - [x] "Open on TikTok" link — opens `original_url` in new tab
+  - [x] Loading state while embed is initializing
+- [x] `App.jsx` renders `ShuffleView` as the default view (no nav switching yet)
 
 **Checkpoint:** Open the app. A random TikTok loads automatically. Shuffle picks a new one. Replay reloads the current video. Open on TikTok works.
 

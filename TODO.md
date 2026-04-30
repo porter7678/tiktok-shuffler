@@ -104,3 +104,12 @@ Replace the TikTok embed iframe with a native `<video>` element.
 - [ ] Test full production flow: only uvicorn running, no Vite dev server
 
 **Checkpoint:** `npm run build` + uvicorn + open `http://localhost:8000`. Everything works from the compiled build.
+
+
+## Other items:
+- [ ] Audio levels are inconsistent across videos. Can we normalize those?
+- [ ] I am going to want to be able to filter by like date and then shuffle within that subset I think.
+- [ ] Add a search feature based on video descriptions and artist
+- [ ] How hard would it be to get captions for each of these? If so, I could add a search feature.
+- [ ] Add a "favorites" feature so I can mark certain videos as extra special and have a separate shuffle for those.
+- [ ] Add ability to go backwards/forwards in the shuffle history. Maybe we store this locally, and that way I don't see a repeat until I've gone through all the videos? At which point we would reshuffle

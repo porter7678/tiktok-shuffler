@@ -9,7 +9,7 @@ help:
 	@echo "make install    Install all dependencies"
 	@echo "make build      Build frontend for production"
 	@echo "make prod       Build and serve in production mode"
-	@echo "make download   Download all liked TikToks to /mnt/d/tiktoks (resumable)"
+	@echo "make download   Download all liked TikToks to /mnt/d/tiktoks (resumable, pass ARGS= for flags)"
 
 dev:
 	@source $(NVM_SH); \

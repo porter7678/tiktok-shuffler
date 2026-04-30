@@ -46,10 +46,37 @@ You can stop with `Ctrl-C` at any time and resume later — already-downloaded v
 
 Many videos will fail — deleted, private, or region-locked content is expected. They land in `_failures.json` and are silently skipped on subsequent runs.
 
-To retry all previously failed videos (useful if you think TikTok access has changed):
+To retry all previously failed videos:
 
 ```bash
 uv run python scripts/download_tiktoks.py --retry-failed
+```
+
+## Private / restricted videos
+
+If you see errors like `You do not have permission to view this post`, yt-dlp needs your TikTok login cookies. Pass them from your browser:
+
+```bash
+# Pull cookies from Edge (easiest on Windows/WSL — Edge is always installed)
+uv run python scripts/download_tiktoks.py --browser edge
+
+# Or Chrome / Firefox
+uv run python scripts/download_tiktoks.py --browser chrome
+uv run python scripts/download_tiktoks.py --browser firefox
+```
+
+If browser cookie extraction doesn't work from WSL, export cookies manually:
+1. Install the **"Get cookies.txt LOCALLY"** extension in Chrome/Edge
+2. Visit tiktok.com while logged in, click the extension, export
+3. Save the file somewhere (e.g. `~/tiktok-cookies.txt`) and pass it:
+   ```bash
+   uv run python scripts/download_tiktoks.py --cookies ~/tiktok-cookies.txt
+   ```
+
+Once you have cookies working, re-run with `--retry-failed` to pick up the previously blocked videos:
+
+```bash
+uv run python scripts/download_tiktoks.py --browser edge --retry-failed
 ```
 
 ## All options
@@ -60,6 +87,8 @@ uv run python scripts/download_tiktoks.py --retry-failed
 | `--json-path` | `./user_data_tiktok.json` | Path to your TikTok data export |
 | `--limit N` | *(none)* | Stop after N videos (for testing) |
 | `--retry-failed` | off | Re-attempt videos in the failure manifest |
+| `--browser BROWSER` | *(none)* | Pull TikTok cookies from `chrome`, `edge`, or `firefox` |
+| `--cookies FILE` | *(none)* | Path to a Netscape-format cookies file |
 
 The `--json-path` default also respects the `TIKTOK_JSON_PATH` environment variable.
 

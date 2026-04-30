@@ -76,6 +76,11 @@ def main() -> None:
                         help="Stop after processing N videos (useful for smoke testing)")
     parser.add_argument("--retry-failed", action="store_true",
                         help="Re-attempt videos listed in the failure manifest")
+    parser.add_argument("--browser", metavar="BROWSER",
+                        help="Pull TikTok cookies from this browser (e.g. chrome, edge, firefox). "
+                             "Required for private/restricted videos.")
+    parser.add_argument("--cookies", metavar="FILE",
+                        help="Path to a Netscape-format cookies file exported from your browser.")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -101,6 +106,10 @@ def main() -> None:
         "quiet": True,
         "no_warnings": True,
     }
+    if args.browser:
+        ydl_opts["cookiesfrombrowser"] = (args.browser,)
+    if args.cookies:
+        ydl_opts["cookiefile"] = args.cookies
 
     total = len(videos)
     n_downloaded = 0

@@ -72,11 +72,11 @@ Cut the backend over from JSON-only to serving on-disk videos.
 
 Replace the TikTok embed iframe with a native `<video>` element.
 
-- [ ] Add `VideoPlayer.jsx` — `<video src={src} controls loop autoPlay>`, remount on key change
-- [ ] Update `ShuffleView.jsx` to use `VideoPlayer` instead of `VideoEmbed`
-- [ ] Update `ThumbnailTile.jsx` — `src` is now `local_thumbnail_url` from the API response (no lazy IntersectionObserver fetch needed)
-- [ ] Remove `VideoEmbed.jsx` and the oEmbed thumbnail-fetch logic
-- [ ] Remove "Replay" button (native `<video controls>` handles that)
+- [x] Add `VideoPlayer.jsx` — `<video src={src} controls loop autoPlay>`, remount on key change
+- [x] Update `ShuffleView.jsx` to use `VideoPlayer` instead of `VideoEmbed`
+- [ ] Update `ThumbnailTile.jsx` — deferred to M6 (file doesn't exist yet; created in Grid View milestone)
+- [x] Remove `VideoEmbed.jsx` and the oEmbed thumbnail-fetch logic (no oEmbed logic existed)
+- [x] Remove "Replay" button (native `<video controls>` handles that)
 
 **Checkpoint:** Open the app. A random video plays in a native player. Shuffle loads a new one. Grid thumbnails show from local files.
 
@@ -107,6 +107,7 @@ Replace the TikTok embed iframe with a native `<video>` element.
 
 
 ## Other items:
+- [ ] Add a 2x speed button. When I hover my mouse over the button, I want it to playback at 2x speed.
 - [ ] Audio levels are inconsistent across videos. Can we normalize those?
 - [ ] I am going to want to be able to filter by like date and then shuffle within that subset I think.
 - [ ] Add a search feature based on video descriptions and artist

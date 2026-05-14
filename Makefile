@@ -15,6 +15,7 @@ help:
 dev:
 	@source $(NVM_SH); \
 	  TIKTOK_VIDEO_DIR=$(TIKTOK_VIDEO_DIR) uv run uvicorn backend.main:app --reload --port 8000 & BACKEND=$$!; \
+	  until curl -sf http://localhost:8000/api/random > /dev/null 2>&1; do sleep 0.5; done; \
 	  npm --prefix frontend run dev -- --open & FRONTEND=$$!; \
 	  trap "kill $$BACKEND $$FRONTEND 2>/dev/null; exit 0" INT TERM; \
 	  wait

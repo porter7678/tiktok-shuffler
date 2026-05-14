@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import re
+import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
@@ -50,7 +52,22 @@ def scan_available_ids(video_dir: str | Path) -> tuple[set[str], set[str]]:
     return mp4_ids, jpg_ids
 
 
+def _load_info_metadata(video_dir: Path, video_id: str) -> dict:
+    info_path = Path(video_dir) / f"{video_id}.info.json"
+    try:
+        with open(info_path) as f:
+            info = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"description": None, "uploader": None, "uploader_url": None}
+    return {
+        "description": info.get("description") or None,
+        "uploader": info.get("uploader") or None,
+        "uploader_url": info.get("uploader_url") or None,
+    }
+
+
 def build_video_list(json_path: str | Path, video_dir: str | Path) -> list[dict]:
+    t0 = time.monotonic()
     videos = load_videos(json_path)
     mp4_ids, jpg_ids = scan_available_ids(video_dir)
 
@@ -60,6 +77,11 @@ def build_video_list(json_path: str | Path, video_dir: str | Path) -> list[dict]
         vid_id = v["id"]
         v["local_video_url"] = f"/media/{vid_id}.mp4"
         v["local_thumbnail_url"] = f"/media/{vid_id}.jpg" if vid_id in jpg_ids else None
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        metadata = list(pool.map(lambda v: _load_info_metadata(video_dir, v["id"]), available))
+    for v, meta in zip(available, metadata):
+        v.update(meta)
 
     if len(available) > 1:
         timestamps = [datetime.fromisoformat(v["liked_at"]) for v in available]
@@ -71,4 +93,5 @@ def build_video_list(json_path: str | Path, video_dir: str | Path) -> list[dict]
         for v in available:
             v["recency"] = 1.0
 
+    logger.info("Loaded %d videos in %.1fs", len(available), time.monotonic() - t0)
     return available

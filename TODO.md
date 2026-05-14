@@ -46,7 +46,7 @@ Download all liked videos to local storage so the app can run without TikTok net
   - [x] CLI flags: `--output-dir`, `--json-path`, `--limit N`, `--retry-failed`
   - [x] Per-item progress line + overall elapsed/ETA timing
 - [x] `scripts/README.md` — prerequisites, usage examples, output layout, WSL path note
-- [ ] First full run completes; `_failures.json` reviewed (~150 downloaded so far, run in progress)
+- [x] First full run completes; `_failures.json` reviewed (3,724 downloaded, 924 failures, ~4,648 total processed)
 
 **Checkpoint:** `uv run python scripts/download_tiktoks.py --limit 10` downloads 10 videos (or fewer if some fail). Re-run is fully skipped. Full run finishes without crashing.
 
@@ -56,13 +56,13 @@ Download all liked videos to local storage so the app can run without TikTok net
 
 Cut the backend over from JSON-only to serving on-disk videos.
 
-- [ ] Scan `TIKTOK_VIDEO_DIR` at startup for `*.mp4` files; build available-ID set
-- [ ] Filter `load_videos` output to on-disk IDs only
-- [ ] Replace `embed_url` field with `local_video_url` (`/media/<id>.mp4`) and `local_thumbnail_url` (`/media/<id>.jpg`)
-- [ ] Mount `StaticFiles` at `/media` pointing to `TIKTOK_VIDEO_DIR`
-- [ ] Remove `GET /api/thumbnail/{video_id}` (oEmbed proxy no longer needed)
-- [ ] Add `TIKTOK_VIDEO_DIR` env var (default `/mnt/d/tiktoks`)
-- [ ] Proxy `/media` in `vite.config.js`
+- [x] Scan `TIKTOK_VIDEO_DIR` at startup for `*.mp4` files; build available-ID set
+- [x] Filter `load_videos` output to on-disk IDs only
+- [x] Replace `embed_url` field with `local_video_url` (`/media/<id>.mp4`) and `local_thumbnail_url` (`/media/<id>.jpg`)
+- [x] Mount `StaticFiles` at `/media` pointing to `TIKTOK_VIDEO_DIR`
+- [x] Remove `GET /api/thumbnail/{video_id}` (oEmbed proxy never existed — no-op)
+- [x] Add `TIKTOK_VIDEO_DIR` env var (default `/mnt/d/tiktoks`)
+- [x] Proxy `/media` in `vite.config.js`
 
 **Checkpoint:** `GET /api/random` returns a `local_video_url`; `curl http://localhost:8000/<local_video_url>` streams the mp4.
 

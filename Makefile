@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 NVM_SH := $(HOME)/.nvm/nvm.sh
+TIKTOK_VIDEO_DIR ?= /mnt/d/tiktoks
 
 .PHONY: dev stop install build prod download help
 
@@ -13,7 +14,7 @@ help:
 
 dev:
 	@source $(NVM_SH); \
-	  uv run uvicorn backend.main:app --reload --port 8000 & BACKEND=$$!; \
+	  TIKTOK_VIDEO_DIR=$(TIKTOK_VIDEO_DIR) uv run uvicorn backend.main:app --reload --port 8000 & BACKEND=$$!; \
 	  npm --prefix frontend run dev -- --open & FRONTEND=$$!; \
 	  trap "kill $$BACKEND $$FRONTEND 2>/dev/null; exit 0" INT TERM; \
 	  wait
@@ -30,7 +31,7 @@ build:
 	@source $(NVM_SH) && npm --prefix frontend run build
 
 prod: build
-	uv run uvicorn backend.main:app --port 8000
+	TIKTOK_VIDEO_DIR=$(TIKTOK_VIDEO_DIR) uv run uvicorn backend.main:app --port 8000
 
 download:
 	uv run python scripts/download_tiktoks.py $(ARGS)

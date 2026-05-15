@@ -74,7 +74,7 @@ Replace the TikTok embed iframe with a native `<video>` element.
 
 - [x] Add `VideoPlayer.jsx` — `<video src={src} controls loop autoPlay>`, remount on key change
 - [x] Update `ShuffleView.jsx` to use `VideoPlayer` instead of `VideoEmbed`
-- [ ] Update `ThumbnailTile.jsx` — deferred to M6 (file doesn't exist yet; created in Grid View milestone)
+- [x] Update `ThumbnailTile.jsx` — created in M6
 - [x] Remove `VideoEmbed.jsx` and the oEmbed thumbnail-fetch logic (no oEmbed logic existed)
 - [x] Remove "Replay" button (native `<video controls>` handles that)
 
@@ -86,9 +86,9 @@ Replace the TikTok embed iframe with a native `<video>` element.
 
 *(Previously Milestone 3 — targeting embed architecture, now updated for local files.)*
 
-- [ ] `GridView.jsx` — groups videos by year-month, sticky month headers, 3-column CSS grid of `ThumbnailTile` placeholders
-- [ ] `MonthScrubber.jsx` — fixed left column, click-to-scroll, `IntersectionObserver` highlight
-- [ ] Nav bar in `App.jsx` — toggle between Shuffle and Grid views
+- [x] `GridView.jsx` — groups videos by year-month, sticky month headers, 3-column CSS grid of `ThumbnailTile` placeholders
+- [x] `MonthScrubber.jsx` — fixed left column, click-to-scroll, `IntersectionObserver` highlight
+- [x] Nav bar in `App.jsx` — toggle between Shuffle and Grid views
 
 **Checkpoint:** Grid shows all available videos grouped by month. Scrubber scrolls and highlights correctly.
 

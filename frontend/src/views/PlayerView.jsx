@@ -1,22 +1,11 @@
-import { useEffect, useState } from 'react'
 import VideoPlayer from '../components/VideoPlayer'
 import RecencyMeter from '../components/RecencyMeter'
 
-export default function ShuffleView() {
-  const [video, setVideo] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  const shuffle = async () => {
-    setLoading(true)
-    const r = await fetch('/api/random')
-    setVideo(await r.json())
-    setLoading(false)
-  }
-
-  useEffect(() => { shuffle() }, [])
+export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, hasNext, hasPrev }) {
+  const video = currentVideo
 
   return (
-    <div className="shuffle-view">
+    <div className="player-view">
       <aside className="side-info">
         {video && (
           <>
@@ -43,15 +32,19 @@ export default function ShuffleView() {
       </aside>
 
       <div className="video-wrapper">
-        {loading || !video
+        {!video
           ? <div className="video-placeholder">Loading…</div>
           : <VideoPlayer key={video.id} src={video.local_video_url} poster={video.local_thumbnail_url} />}
       </div>
 
       <aside className="side-controls">
-        <button className="shuffle-btn" onClick={shuffle} disabled={loading}>
+        <button className="shuffle-btn" onClick={onShuffle} disabled={!video}>
           Shuffle
         </button>
+        <div className="nav-row">
+          <button className="nav-btn" onClick={onPrev} disabled={!hasPrev} aria-label="Previous (newer)">‹ Prev</button>
+          <button className="nav-btn" onClick={onNext} disabled={!hasNext} aria-label="Next (older)">Next ›</button>
+        </div>
       </aside>
     </div>
   )

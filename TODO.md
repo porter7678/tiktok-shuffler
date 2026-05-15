@@ -107,7 +107,7 @@ Replace the TikTok embed iframe with a native `<video>` element.
 
 
 ## Other items:
-- [ ] Add a 2x speed button. When I hover my mouse over the button, I want it to playback at 2x speed.
+- [X] Add a 2x speed button. When I hover my mouse over the button, I want it to playback at 2x speed.
 - [ ] Audio levels are inconsistent across videos. Can we normalize those?
 - [ ] I am going to want to be able to filter by like date and then shuffle within that subset I think.
 - [ ] Add a search feature based on video descriptions and artist

@@ -132,6 +132,18 @@
   cursor: not-allowed;
 }
 
+.nav-btn--active {
+  border-color: #fe2c55;
+  color: #fe2c55;
+}
+
+.speed-btn {
+  flex: none;
+  margin-top: 28px;
+  padding: 16px 20px;
+  font-size: 26px;
+}
+
 .creator-link {
   font-size: 15px;
   font-weight: 600;

@@ -1,8 +1,18 @@
+import { useState, useEffect } from 'react'
 import VideoPlayer from '../components/VideoPlayer'
 import RecencyMeter from '../components/RecencyMeter'
 
 export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, hasNext, hasPrev }) {
   const video = currentVideo
+  const [hovered, setHovered] = useState(false)
+  const [locked, setLocked] = useState(false)
+
+  useEffect(() => {
+    setHovered(false)
+    setLocked(false)
+  }, [currentVideo?.id])
+
+  const playbackRate = hovered || locked ? 2 : 1
 
   return (
     <div className="player-view">
@@ -34,7 +44,7 @@ export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, ha
       <div className="video-wrapper">
         {!video
           ? <div className="video-placeholder">Loading…</div>
-          : <VideoPlayer key={video.id} src={video.local_video_url} poster={video.local_thumbnail_url} />}
+          : <VideoPlayer key={video.id} src={video.local_video_url} poster={video.local_thumbnail_url} playbackRate={playbackRate} />}
       </div>
 
       <aside className="side-controls">
@@ -45,6 +55,15 @@ export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, ha
           <button className="nav-btn" onClick={onPrev} disabled={!hasPrev} aria-label="Previous (newer)">‹ Prev</button>
           <button className="nav-btn" onClick={onNext} disabled={!hasNext} aria-label="Next (older)">Next ›</button>
         </div>
+        <button
+          className={`nav-btn speed-btn${locked ? ' nav-btn--active' : ''}`}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          onClick={() => setLocked(l => !l)}
+          disabled={!video}
+        >
+          2×
+        </button>
       </aside>
     </div>
   )

@@ -172,6 +172,43 @@
   text-decoration: none;
 }
 
+.audio-info {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #e5e5e5;
+}
+
+.audio-info-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.audio-info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.audio-info-row > span:first-child {
+  color: #666;
+}
+
+.audio-info-row--muted > span {
+  color: #555 !important;
+}
+
 .tiktok-link:hover {
   color: #aaa;
   text-decoration: underline;

@@ -2,14 +2,38 @@ import { useState, useEffect } from 'react'
 import VideoPlayer from '../components/VideoPlayer'
 import RecencyMeter from '../components/RecencyMeter'
 
+const TARGET_LUFS = -14
+
+function AudioInfo({ info }) {
+  const fmtLufs = v => v == null ? '—' : `${v.toFixed(1)} LUFS`
+  const fmtDb = g => g == null ? '—' : `${g >= 1 ? '+' : ''}${(20 * Math.log10(g)).toFixed(1)} dB`
+  const status = info?.status ?? 'idle'
+  const statusLabel = { analyzing: 'analyzing…', normalized: 'normalized', clamped: 'clamped', unavailable: 'unavailable' }[status] ?? '—'
+
+  return (
+    <div className="audio-info">
+      <div className="audio-info-title">Audio</div>
+      <div className="audio-info-row"><span>Detected</span><span>{status === 'analyzing' ? 'analyzing…' : fmtLufs(info?.lufs)}</span></div>
+      <div className="audio-info-row"><span>Target</span><span>{TARGET_LUFS.toFixed(1)} LUFS</span></div>
+      <div className="audio-info-row"><span>Applied</span><span>{fmtDb(info?.gain)}</span></div>
+      {status === 'clamped' && info?.rawGain != null && (
+        <div className="audio-info-row audio-info-row--muted"><span>Raw</span><span>{fmtDb(info.rawGain)}</span></div>
+      )}
+      <div className="audio-info-row"><span>Status</span><span>{statusLabel}</span></div>
+    </div>
+  )
+}
+
 export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, hasNext, hasPrev }) {
   const video = currentVideo
   const [hovered, setHovered] = useState(false)
   const [locked, setLocked] = useState(false)
+  const [audioInfo, setAudioInfo] = useState(null)
 
   useEffect(() => {
     setHovered(false)
     setLocked(false)
+    setAudioInfo(null)
   }, [currentVideo?.id])
 
   const playbackRate = hovered || locked ? 2 : 1
@@ -44,7 +68,7 @@ export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, ha
       <div className="video-wrapper">
         {!video
           ? <div className="video-placeholder">Loading…</div>
-          : <VideoPlayer key={video.id} src={video.local_video_url} poster={video.local_thumbnail_url} playbackRate={playbackRate} />}
+          : <VideoPlayer key={video.id} src={video.local_video_url} poster={video.local_thumbnail_url} playbackRate={playbackRate} videoId={video.id} onLoudness={setAudioInfo} />}
       </div>
 
       <aside className="side-controls">
@@ -64,6 +88,7 @@ export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, ha
         >
           2×
         </button>
+        <AudioInfo info={audioInfo} />
       </aside>
     </div>
   )

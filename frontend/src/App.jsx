@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import PlayerView from './views/PlayerView'
 import GridView from './views/GridView'
+import NudgeModal from './components/NudgeModal'
 
 export default function App() {
   const [videos, setVideos] = useState([])
@@ -9,6 +10,11 @@ export default function App() {
   const [currentVideo, setCurrentVideo] = useState(null)
   const [filter, setFilter] = useState('all')   // 'all' | 'liked' | 'favorites'
   const [sortBy, setSortBy] = useState('liked_at') // 'liked_at' | 'marked_at'
+  const [navCount, setNavCount] = useState(0)
+  const [sessionCount, setSessionCount] = useState(0)
+  const [nudgeThreshold, setNudgeThreshold] = useState(20)
+  const [nudgeOpen, setNudgeOpen] = useState(false)
+  const [killed, setKilled] = useState(false)
 
   useEffect(() => {
     fetch('/api/videos')
@@ -34,21 +40,44 @@ export default function App() {
     ? filteredVideos.findIndex((v) => v.id === currentVideo.id)
     : -1
 
+  const registerNav = () => {
+    setSessionCount(c => c + 1)
+    setNavCount(c => {
+      const n = c + 1
+      if (n >= nudgeThreshold) setNudgeOpen(true)
+      return n
+    })
+  }
+
   const shuffle = () => {
     if (filteredVideos.length === 0) return
     setCurrentVideo(filteredVideos[Math.floor(Math.random() * filteredVideos.length)])
+    registerNav()
   }
 
   const next = () => {
     if (currentIndex >= 0 && currentIndex < filteredVideos.length - 1) {
       setCurrentVideo(filteredVideos[currentIndex + 1])
+      registerNav()
     }
   }
 
   const prev = () => {
     if (currentIndex > 0) {
       setCurrentVideo(filteredVideos[currentIndex - 1])
+      registerNav()
     }
+  }
+
+  const handleContinue = (n) => {
+    setNudgeThreshold(n)
+    setNavCount(0)
+    setNudgeOpen(false)
+  }
+
+  const handleKill = async () => {
+    try { await fetch('/api/shutdown', { method: 'POST' }) } catch {}
+    setKilled(true)
   }
 
   const selectFromGrid = (v) => {
@@ -73,6 +102,10 @@ export default function App() {
 
   const filterLabel = filter === 'liked' ? 'Liked' : filter === 'favorites' ? 'Favorites' : null
 
+  if (killed) {
+    return <div className="killed-screen">App stopped. Close this tab.</div>
+  }
+
   return (
     <div className="app">
       <div className="app-header">
@@ -92,6 +125,9 @@ export default function App() {
             </button>
           ))}
         </div>
+        {sessionCount > 0 && (
+          <span className="session-count">{sessionCount} watched</span>
+        )}
         {filter !== 'all' && (
           <div className="sort-toggle">
             <span className="sort-label">{filterLabel}: </span>
@@ -117,8 +153,10 @@ export default function App() {
             hasPrev={currentIndex > 0}
             onToggleLike={() => toggleMark('liked')}
             onToggleFavorite={() => toggleMark('favorited')}
+            paused={nudgeOpen}
           />
         : <GridView videos={filteredVideos} onSelect={selectFromGrid} />}
+      {nudgeOpen && <NudgeModal onContinue={handleContinue} onKill={handleKill} />}
     </div>
   )
 }

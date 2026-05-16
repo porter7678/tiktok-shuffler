@@ -4,6 +4,7 @@ import logging
 import os
 import random
 import re
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -98,6 +99,12 @@ def set_mark(video_id: str, payload: dict):
             v["favorited_marked_at"] = _marks.get(video_id, {}).get("favorited")
             return v
     return {"id": video_id, "liked_marked_at": None, "favorited_marked_at": None}
+
+
+@app.post("/api/shutdown")
+def shutdown():
+    threading.Timer(0.2, lambda: os._exit(0)).start()
+    return {"status": "shutting_down"}
 
 
 @app.get("/api/loudness/{video_id}")

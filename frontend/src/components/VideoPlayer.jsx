@@ -11,7 +11,7 @@ function getAudioCtx() {
 // createMediaElementSource can only be called once per element; cache across strict-mode double-invocations
 const sourceCache = new WeakMap()
 
-export default function VideoPlayer({ src, poster, playbackRate = 1, videoId, onLoudness, replayToken = 0 }) {
+export default function VideoPlayer({ src, poster, playbackRate = 1, videoId, onLoudness, replayToken = 0, paused = false }) {
   const videoRef = useRef(null)
   const isFirstRun = useRef(true)
 
@@ -69,6 +69,13 @@ export default function VideoPlayer({ src, poster, playbackRate = 1, videoId, on
     video.currentTime = 0
     video.play().catch(() => {})
   }, [replayToken])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (paused) video.pause()
+    else video.play().catch(() => {})
+  }, [paused])
 
   useEffect(() => {
     const video = videoRef.current

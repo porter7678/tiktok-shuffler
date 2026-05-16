@@ -110,11 +110,10 @@ Replace the TikTok embed iframe with a native `<video>` element.
 - [X] Add a 2x speed button. When I hover my mouse over the button, I want it to playback at 2x speed.
 - [X] Audio levels are inconsistent across videos. Can we normalize those?
 - [x] Add a "favorites" feature so I can mark certain videos as extra special and have a separate shuffle for those. Actually I want to be able to like them (I know these are technically all "liked" videos but I want a way to mark some as "extra liked") and also to mark them as favorites. So two different categories.
-- [ ] I want a button to replay a video. Because sometime I want to start a video over before it's finished.
-- [ ] Add a thing that pops up after watching like 20 videos that says "oi bruv, you've been watching for a while. Do you want to keep watching?" and if they say yes, they have to enter a number (in plain english) of how many more videos they want to watch before the popup shows again. And when it pops up it should have a button that kills the app.
-- [ ] Add a search feature based on video descriptions and artist
-- [ ] How hard would it be to get captions for each of these? If so, I could add a search feature.
+- [X] I want a button to replay a video. Because sometime I want to start a video over before it's finished.
+- [x] Add a thing that pops up after watching like 20 videos that says "oi bruv, you've been watching for a while. Do you want to keep watching?" and if they say yes, they have to enter a number (in plain english) of how many more videos they want to watch before the popup shows again. And when it pops up it should have a button that kills the app.
 
 - [ ] Add ability to go backwards/forwards in the shuffle history. Maybe we store this locally, and that way I don't see a repeat until I've gone through all the videos? At which point we would reshuffle
-- [ ] Add a thing that pops up after watching like 20 videos that says "oi bruv, you've been watching for a while. Do you want to keep watching?" and if they say yes, they have to enter a number (in plain english) of how many more videos they want to watch before the popup shows again. And when it pops up it should have a button that kills the app.
 - [ ] Add a watched history for all the videos I've watched in this app. In case I forget to save one and want to go back and find it a few days later.
+- [ ] Add a search feature based on video descriptions and artist
+- [ ] How hard would it be to get captions for each of these? If so, I could add a search feature.

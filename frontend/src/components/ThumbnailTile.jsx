@@ -12,6 +12,8 @@ function BrokenImageIcon() {
 
 export default function ThumbnailTile({ video, onClick }) {
   const [status, setStatus] = useState(video.local_thumbnail_url ? 'loading' : 'missing')
+  const liked = !!video.liked_marked_at
+  const favorited = !!video.favorited_marked_at
 
   return (
     <button
@@ -32,6 +34,20 @@ export default function ThumbnailTile({ video, onClick }) {
       {status !== 'loaded' && (
         <div className="thumb-placeholder">
           {status === 'missing' && <BrokenImageIcon />}
+        </div>
+      )}
+      {(liked || favorited) && (
+        <div className="thumb-badges">
+          {liked && (
+            <span className="thumb-badge thumb-badge--liked">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="#fe2c55" stroke="#fe2c55" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </span>
+          )}
+          {favorited && (
+            <span className="thumb-badge thumb-badge--favorited">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="#f5c518" stroke="#f5c518" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </span>
+          )}
         </div>
       )}
     </button>

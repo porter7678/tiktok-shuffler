@@ -144,15 +144,34 @@
   font-size: 26px;
 }
 
+.posted-date {
+  font-size: 12px;
+  color: #555;
+  margin-top: 2px;
+}
+
 .creator-link {
-  font-size: 15px;
-  font-weight: 600;
-  color: #e5e5e5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   text-decoration: none;
 }
 
-.creator-link:hover {
+.creator-link:hover .creator-display-name,
+.creator-link:hover .creator-handle {
   color: #fe2c55;
+}
+
+.creator-display-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e5e5e5;
+}
+
+.creator-handle {
+  font-size: 13px;
+  font-weight: 400;
+  color: #aaa;
 }
 
 .description {
@@ -162,6 +181,7 @@
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 8;
+  line-clamp: 8;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -238,9 +258,10 @@
 .app-header {
   width: 100%;
   display: flex;
-  align-items: baseline;
-  gap: 24px;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .app-header .title {
@@ -271,6 +292,127 @@
 .view-nav button.active {
   color: #e5e5e5;
   border-bottom-color: #fe2c55;
+}
+
+/* --- Filter pills --- */
+
+.filter-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.filter-pill {
+  background: none;
+  border: 1px solid #2a2a2a;
+  border-radius: 20px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.filter-pill:hover {
+  color: #e5e5e5;
+  border-color: #3a3a3a;
+}
+
+.filter-pill.active {
+  color: #e5e5e5;
+  border-color: #fe2c55;
+  background: rgba(254, 44, 85, 0.1);
+}
+
+/* --- Sort toggle --- */
+
+.sort-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #666;
+}
+
+.sort-label {
+  color: #555;
+}
+
+.sort-btn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 11px;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.sort-btn:hover {
+  color: #e5e5e5;
+}
+
+.sort-btn.active {
+  color: #e5e5e5;
+  font-weight: 600;
+}
+
+.sort-sep {
+  color: #3a3a3a;
+}
+
+/* --- Mark buttons (heart / bookmark) --- */
+
+.mark-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mark-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #888;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.mark-btn:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #e5e5e5;
+}
+
+.mark-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.mark-btn--liked {
+  border-color: rgba(254, 44, 85, 0.5);
+  background: rgba(254, 44, 85, 0.08);
+}
+
+.mark-btn--liked:hover:not(:disabled) {
+  border-color: #fe2c55;
+  background: rgba(254, 44, 85, 0.15);
+}
+
+.mark-btn--favorited {
+  border-color: rgba(245, 197, 24, 0.5);
+  background: rgba(245, 197, 24, 0.08);
+}
+
+.mark-btn--favorited:hover:not(:disabled) {
+  border-color: #f5c518;
+  background: rgba(245, 197, 24, 0.15);
 }
 
 /* --- Grid view layout --- */
@@ -354,6 +496,26 @@
   align-items: center;
   justify-content: center;
   background: #1a1a1a;
+}
+
+.thumb-badges {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  display: flex;
+  gap: 3px;
+  z-index: 2;
+}
+
+.thumb-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
 }
 
 /* --- MonthScrubber --- */

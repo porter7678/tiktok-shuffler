@@ -58,11 +58,17 @@ def _load_info_metadata(video_dir: Path, video_id: str) -> dict:
         with open(info_path) as f:
             info = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        return {"description": None, "uploader": None, "uploader_url": None}
+        return {"description": None, "uploader": None, "uploader_url": None, "channel": None}
+    raw_date = info.get("upload_date") or None  # "YYYYMMDD"
+    upload_date = None
+    if raw_date and len(raw_date) == 8:
+        upload_date = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:]}"
     return {
         "description": info.get("description") or None,
         "uploader": info.get("uploader") or None,
         "uploader_url": info.get("uploader_url") or None,
+        "channel": info.get("channel") or None,
+        "upload_date": upload_date,
     }
 
 

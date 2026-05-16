@@ -4,9 +4,10 @@ import logging
 import os
 import random
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from backend.data_loader import build_video_list
@@ -27,6 +28,25 @@ if _loudness_file.exists():
         _loudness_cache = {k: v for k, v in raw.items() if v is not None}
     except Exception:
         pass
+
+_marks_file = _video_dir / "_marks.json"
+_marks: dict[str, dict] = {}
+if _marks_file.exists():
+    try:
+        _marks = json.loads(_marks_file.read_text())
+    except Exception:
+        pass
+
+for v in _videos:
+    m = _marks.get(v["id"], {})
+    v["liked_marked_at"] = m.get("liked")
+    v["favorited_marked_at"] = m.get("favorited")
+
+
+def _save_marks() -> None:
+    tmp = _marks_file.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(_marks))
+    tmp.replace(_marks_file)
 
 
 async def _analyze_loudness(video_path: Path) -> float | None:
@@ -56,6 +76,28 @@ def get_videos():
 @app.get("/api/random")
 def get_random():
     return random.choice(_videos)
+
+
+@app.post("/api/marks/{video_id}")
+def set_mark(video_id: str, payload: dict):
+    kind = payload.get("kind")
+    value = payload.get("value")
+    if kind not in ("liked", "favorited"):
+        raise HTTPException(status_code=400, detail="kind must be 'liked' or 'favorited'")
+    entry = _marks.setdefault(video_id, {})
+    if value:
+        entry[kind] = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "")
+    else:
+        entry.pop(kind, None)
+    if not entry:
+        _marks.pop(video_id, None)
+    _save_marks()
+    for v in _videos:
+        if v["id"] == video_id:
+            v["liked_marked_at"] = _marks.get(video_id, {}).get("liked")
+            v["favorited_marked_at"] = _marks.get(video_id, {}).get("favorited")
+            return v
+    return {"id": video_id, "liked_marked_at": None, "favorited_marked_at": None}
 
 
 @app.get("/api/loudness/{video_id}")

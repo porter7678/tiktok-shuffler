@@ -41,11 +41,13 @@ export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, ha
   const [hovered, setHovered] = useState(false)
   const [locked, setLocked] = useState(false)
   const [audioInfo, setAudioInfo] = useState(null)
+  const [replayToken, setReplayToken] = useState(0)
 
   useEffect(() => {
     setHovered(false)
     setLocked(false)
     setAudioInfo(null)
+    setReplayToken(0)
   }, [currentVideo?.id])
 
   const playbackRate = hovered || locked ? 2 : 1
@@ -88,7 +90,7 @@ export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, ha
       <div className="video-wrapper">
         {!video
           ? <div className="video-placeholder">Loading…</div>
-          : <VideoPlayer key={video.id} src={video.local_video_url} poster={video.local_thumbnail_url} playbackRate={playbackRate} videoId={video.id} onLoudness={setAudioInfo} />}
+          : <VideoPlayer key={video.id} src={video.local_video_url} poster={video.local_thumbnail_url} playbackRate={playbackRate} videoId={video.id} onLoudness={setAudioInfo} replayToken={replayToken} />}
       </div>
 
       <aside className="side-controls">
@@ -99,6 +101,9 @@ export default function PlayerView({ currentVideo, onShuffle, onNext, onPrev, ha
           <button className="nav-btn" onClick={onPrev} disabled={!hasPrev} aria-label="Previous (newer)">‹ Prev</button>
           <button className="nav-btn" onClick={onNext} disabled={!hasNext} aria-label="Next (older)">Next ›</button>
         </div>
+        <button className="nav-btn" style={{ flex: 'none' }} onClick={() => setReplayToken(t => t + 1)} disabled={!video} aria-label="Replay">
+          ↻ Replay
+        </button>
         <button
           className={`nav-btn speed-btn${locked ? ' nav-btn--active' : ''}`}
           onMouseEnter={() => setHovered(true)}

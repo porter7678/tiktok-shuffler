@@ -38,6 +38,14 @@ if _marks_file.exists():
     except Exception:
         pass
 
+_history_file = _video_dir / "_history.json"
+_history: dict = {"ids": [], "index": -1}
+if _history_file.exists():
+    try:
+        _history = json.loads(_history_file.read_text())
+    except Exception:
+        pass
+
 for v in _videos:
     m = _marks.get(v["id"], {})
     v["liked_marked_at"] = m.get("liked")
@@ -48,6 +56,12 @@ def _save_marks() -> None:
     tmp = _marks_file.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(_marks))
     tmp.replace(_marks_file)
+
+
+def _save_history() -> None:
+    tmp = _history_file.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(_history))
+    tmp.replace(_history_file)
 
 
 async def _analyze_loudness(video_path: Path) -> float | None:
@@ -77,6 +91,19 @@ def get_videos():
 @app.get("/api/random")
 def get_random():
     return random.choice(_videos)
+
+
+@app.get("/api/history")
+def get_history():
+    return _history
+
+
+@app.post("/api/history")
+def set_history(payload: dict):
+    global _history
+    _history = payload
+    _save_history()
+    return _history
 
 
 @app.post("/api/marks/{video_id}")

@@ -137,9 +137,50 @@
   color: #fe2c55;
 }
 
+.true-shuffle-btn {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #1a1a1a;
+  color: #666;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.true-shuffle-btn:hover:not(:disabled) {
+  background: #2a2a2a;
+  color: #aaa;
+  border-color: #3a3a3a;
+}
+
+.true-shuffle-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.history-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-label {
+  font-size: 10px;
+  color: #444;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.history-btns {
+  display: flex;
+  gap: 8px;
+}
+
 .speed-btn {
   flex: none;
-  margin-top: 28px;
   padding: 16px 20px;
   font-size: 26px;
 }
@@ -268,10 +309,22 @@
   margin: 0;
 }
 
+.header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .session-count {
   font-size: 11px;
   color: #444;
-  margin-left: auto;
+  white-space: nowrap;
+}
+
+.progress-indicator {
+  font-size: 11px;
+  color: #3a3a3a;
   white-space: nowrap;
 }
 

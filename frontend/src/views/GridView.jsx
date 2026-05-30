@@ -18,7 +18,7 @@ function groupByMonth(videos) {
   return out
 }
 
-export default function GridView({ videos, onSelect }) {
+export default function GridView({ videos, onSelect, artistFilter = null, onClearArtist }) {
   const groups = useMemo(() => groupByMonth(videos), [videos])
   const [activeKey, setActiveKey] = useState(groups[0]?.key ?? null)
   const scrollRef = useRef(null)
@@ -46,6 +46,12 @@ export default function GridView({ videos, onSelect }) {
     <div className="grid-view">
       <MonthScrubber groups={groups} activeKey={activeKey} />
       <div className="grid-scroll" ref={scrollRef}>
+        {artistFilter && (
+          <div className="artist-filter-banner">
+            <span>Showing {videos.length} video{videos.length === 1 ? '' : 's'} by <strong>@{artistFilter}</strong></span>
+            <button className="artist-filter-clear" onClick={onClearArtist}>Show all</button>
+          </div>
+        )}
         {groups.map(({ key, date, videos: groupVideos }) => {
           const monthLabel = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
           return (

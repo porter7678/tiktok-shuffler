@@ -19,6 +19,7 @@ export default function App() {
   const [killed, setKilled] = useState(false)
   const [history, setHistory] = useState({ ids: [], index: -1 })
   const [reshuffleOpen, setReshuffleOpen] = useState(false)
+  const [artistFilter, setArtistFilter] = useState(null)
   const historyLoaded = useRef(false)
 
   useEffect(() => {
@@ -61,8 +62,12 @@ export default function App() {
     return list
   }, [videos, filter, sortBy])
 
+  const gridVideos = artistFilter
+    ? videos.filter(v => v.uploader === artistFilter)
+    : filteredVideos
+
   const currentIndex = currentVideo
-    ? filteredVideos.findIndex((v) => v.id === currentVideo.id)
+    ? gridVideos.findIndex((v) => v.id === currentVideo.id)
     : -1
 
   // Derived progress info (All-pool only)
@@ -76,6 +81,18 @@ export default function App() {
   const canBack = history.index > 0
   const canForward = history.index < history.ids.length - 1
   const showTrueShuffle = filter === 'all'
+
+  const artistCount = currentVideo?.uploader
+    ? videos.filter(v => v.uploader === currentVideo.uploader).length
+    : 0
+
+  const showArtist = () => {
+    if (!currentVideo?.uploader) return
+    setArtistFilter(currentVideo.uploader)
+    setView('grid')
+  }
+
+  const clearArtist = () => setArtistFilter(null)
 
   const registerNav = () => {
     setSessionCount(c => c + 1)
@@ -95,6 +112,7 @@ export default function App() {
   }
 
   const shuffle = () => {
+    setArtistFilter(null)
     if (filteredVideos.length === 0) return
     if (filter !== 'all') {
       // Plain random for Liked / Favorites
@@ -112,11 +130,13 @@ export default function App() {
   }
 
   const trueShuffle = () => {
+    setArtistFilter(null)
     if (filteredVideos.length === 0) return
     goTo(filteredVideos[Math.floor(Math.random() * filteredVideos.length)])
   }
 
   const historyBack = () => {
+    setArtistFilter(null)
     if (history.index <= 0) return
     const videoMap = new Map(videos.map(v => [v.id, v]))
     let idx = history.index - 1
@@ -128,6 +148,7 @@ export default function App() {
   }
 
   const historyForward = () => {
+    setArtistFilter(null)
     if (history.index >= history.ids.length - 1) return
     const videoMap = new Map(videos.map(v => [v.id, v]))
     let idx = history.index + 1
@@ -148,14 +169,14 @@ export default function App() {
   }
 
   const next = () => {
-    if (currentIndex >= 0 && currentIndex < filteredVideos.length - 1) {
-      goTo(filteredVideos[currentIndex + 1])
+    if (currentIndex >= 0 && currentIndex < gridVideos.length - 1) {
+      goTo(gridVideos[currentIndex + 1])
     }
   }
 
   const prev = () => {
     if (currentIndex > 0) {
-      goTo(filteredVideos[currentIndex - 1])
+      goTo(gridVideos[currentIndex - 1])
     }
   }
 
@@ -201,8 +222,8 @@ export default function App() {
       <div className="app-header">
         <h1 className="title">TikTok Shuffler</h1>
         <nav className="view-nav">
-          <button className={view === 'player' ? 'active' : undefined} onClick={() => setView('player')}>Player</button>
-          <button className={view === 'grid' ? 'active' : undefined} onClick={() => setView('grid')}>Grid</button>
+          <button className={view === 'player' ? 'active' : undefined} onClick={() => { setArtistFilter(null); setView('player') }}>Player</button>
+          <button className={view === 'grid' ? 'active' : undefined} onClick={() => { setArtistFilter(null); setView('grid') }}>Grid</button>
         </nav>
         <div className="filter-nav">
           {['all', 'liked', 'favorites'].map(f => (
@@ -247,7 +268,7 @@ export default function App() {
             onTrueShuffle={trueShuffle}
             onNext={next}
             onPrev={prev}
-            hasNext={currentIndex >= 0 && currentIndex < filteredVideos.length - 1}
+            hasNext={currentIndex >= 0 && currentIndex < gridVideos.length - 1}
             hasPrev={currentIndex > 0}
             onHistoryBack={historyBack}
             onHistoryForward={historyForward}
@@ -256,9 +277,11 @@ export default function App() {
             showTrueShuffle={showTrueShuffle}
             onToggleLike={() => toggleMark('liked')}
             onToggleFavorite={() => toggleMark('favorited')}
+            onShowArtist={showArtist}
+            artistCount={artistCount}
             paused={nudgeOpen}
           />
-        : <GridView videos={filteredVideos} onSelect={selectFromGrid} />}
+        : <GridView videos={gridVideos} onSelect={selectFromGrid} artistFilter={artistFilter} onClearArtist={clearArtist} />}
       {nudgeOpen && <NudgeModal onContinue={handleContinue} onKill={handleKill} />}
       {reshuffleOpen && <ReshuffleModal total={totalCount} onConfirm={confirmReshuffle} onCancel={() => setReshuffleOpen(false)} />}
     </div>

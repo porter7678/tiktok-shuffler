@@ -114,6 +114,5 @@ Replace the TikTok embed iframe with a native `<video>` element.
 - [x] Add a thing that pops up after watching like 20 videos that says "oi bruv, you've been watching for a while. Do you want to keep watching?" and if they say yes, they have to enter a number (in plain english) of how many more videos they want to watch before the popup shows again. And when it pops up it should have a button that kills the app.
 - [X] Add ability to go backwards/forwards in the shuffle history. Maybe we store this locally, and that way I don't see a repeat until I've gone through all the videos? At which point we would reshuffle. This should be different than backwards/forwards chronologically. I might need a different pair of buttons for this. And maybe I also want a "true shuffle" button that ignores the shuffle history. Should videos I watched using the chronological history be added to the shuffle history? Probably.
 - [x] I want a button near the artists name where I can see all their videos that I've liked.
-- [ ] Add a watched history for all the videos I've watched in this app. In case I forget to save one and want to go back and find it a few days later.
-- [ ] Add a search feature based on video descriptions and artist
+- [x] Add a search feature based on video descriptions and artist
 - [ ] How hard would it be to get captions for each of these? If so, I could add a search feature.

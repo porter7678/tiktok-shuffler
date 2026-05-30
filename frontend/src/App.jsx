@@ -5,6 +5,7 @@ import GridView from './views/GridView'
 import NudgeModal from './components/NudgeModal'
 import ReshuffleModal from './components/ReshuffleModal'
 import { loadHistoryFromServer, saveHistoryToServer, appendToHistory } from './utils/shuffleHistory'
+import { searchVideos } from './utils/searchVideos'
 
 export default function App() {
   const [videos, setVideos] = useState([])
@@ -20,6 +21,8 @@ export default function App() {
   const [history, setHistory] = useState({ ids: [], index: -1 })
   const [reshuffleOpen, setReshuffleOpen] = useState(false)
   const [artistFilter, setArtistFilter] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const historyLoaded = useRef(false)
 
   useEffect(() => {
@@ -62,9 +65,16 @@ export default function App() {
     return list
   }, [videos, filter, sortBy])
 
-  const gridVideos = artistFilter
-    ? videos.filter(v => v.uploader === artistFilter)
-    : filteredVideos
+  const trimmedQuery = searchQuery.trim()
+  const searchResults = useMemo(
+    () => (trimmedQuery ? searchVideos(videos, trimmedQuery) : []),
+    [videos, trimmedQuery]
+  )
+  const gridVideos = trimmedQuery
+    ? searchResults
+    : artistFilter
+      ? videos.filter(v => v.uploader === artistFilter)
+      : filteredVideos
 
   const currentIndex = currentVideo
     ? gridVideos.findIndex((v) => v.id === currentVideo.id)
@@ -88,11 +98,20 @@ export default function App() {
 
   const showArtist = () => {
     if (!currentVideo?.uploader) return
+    setSearchQuery('')
+    setSearchInput('')
     setArtistFilter(currentVideo.uploader)
     setView('grid')
   }
 
   const clearArtist = () => setArtistFilter(null)
+  const clearSearch = () => { setSearchQuery(''); setSearchInput('') }
+
+  const commitSearch = (val) => {
+    const q = val.trim()
+    setSearchQuery(q)
+    if (q) { setArtistFilter(null); setView('grid') }
+  }
 
   const registerNav = () => {
     setSessionCount(c => c + 1)
@@ -236,6 +255,19 @@ export default function App() {
             </button>
           ))}
         </div>
+        <div className="search-box">
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search description or artist…"
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') commitSearch(searchInput) }}
+          />
+          {searchInput && (
+            <button className="search-clear" onClick={clearSearch} aria-label="Clear search">×</button>
+          )}
+        </div>
         <div className="header-right">
           {sessionCount > 0 && (
             <span className="session-count">{sessionCount} watched</span>
@@ -281,7 +313,7 @@ export default function App() {
             artistCount={artistCount}
             paused={nudgeOpen}
           />
-        : <GridView videos={gridVideos} onSelect={selectFromGrid} artistFilter={artistFilter} onClearArtist={clearArtist} />}
+        : <GridView videos={gridVideos} onSelect={selectFromGrid} artistFilter={artistFilter} onClearArtist={clearArtist} searchQuery={trimmedQuery} onClearSearch={clearSearch} />}
       {nudgeOpen && <NudgeModal onContinue={handleContinue} onKill={handleKill} />}
       {reshuffleOpen && <ReshuffleModal total={totalCount} onConfirm={confirmReshuffle} onCancel={() => setReshuffleOpen(false)} />}
     </div>

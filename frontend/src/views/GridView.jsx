@@ -18,8 +18,9 @@ function groupByMonth(videos) {
   return out
 }
 
-export default function GridView({ videos, onSelect, artistFilter = null, onClearArtist }) {
-  const groups = useMemo(() => groupByMonth(videos), [videos])
+export default function GridView({ videos, onSelect, artistFilter = null, onClearArtist, searchQuery = '', onClearSearch }) {
+  // Skip grouping in search mode — we show a flat relevance-ranked list instead
+  const groups = useMemo(() => searchQuery ? [] : groupByMonth(videos), [videos, searchQuery])
   const [activeKey, setActiveKey] = useState(groups[0]?.key ?? null)
   const scrollRef = useRef(null)
 
@@ -42,6 +43,31 @@ export default function GridView({ videos, onSelect, artistFilter = null, onClea
     return () => observer.disconnect()
   }, [groups])
 
+  // --- Search mode: flat relevance-ranked results ---
+  if (searchQuery) {
+    return (
+      <div className="grid-view">
+        <div className="grid-scroll" ref={scrollRef}>
+          <div className="search-banner">
+            {videos.length === 0
+              ? <span>No matches for "<strong>{searchQuery}</strong>"</span>
+              : <span>Results for "<strong>{searchQuery}</strong>" · {videos.length} match{videos.length === 1 ? '' : 'es'}</span>
+            }
+            <button className="search-banner-clear" onClick={onClearSearch}>Clear search</button>
+          </div>
+          {videos.length > 0 && (
+            <div className="thumb-grid">
+              {videos.map((v) => (
+                <ThumbnailTile key={v.id} video={v} onClick={onSelect} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // --- Normal mode: month-grouped with scrubber ---
   return (
     <div className="grid-view">
       <MonthScrubber groups={groups} activeKey={activeKey} />

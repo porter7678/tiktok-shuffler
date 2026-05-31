@@ -42,12 +42,14 @@ export default function PlayerView({ currentVideo, onShuffle, onTrueShuffle, onN
   const [locked, setLocked] = useState(false)
   const [audioInfo, setAudioInfo] = useState(null)
   const [replayToken, setReplayToken] = useState(0)
+  const [showCaptions, setShowCaptions] = useState(false)
 
   useEffect(() => {
     setHovered(false)
     setLocked(false)
     setAudioInfo(null)
     setReplayToken(0)
+    setShowCaptions(false)
   }, [currentVideo?.id])
 
   const playbackRate = hovered || locked ? 2 : 1
@@ -84,6 +86,12 @@ export default function PlayerView({ currentVideo, onShuffle, onTrueShuffle, onN
             )}
             {video.description && (
               <p className="description">{video.description}</p>
+            )}
+            {showCaptions && video.transcript && (
+              <div className="transcript-panel">
+                <div className="transcript-title">Transcript</div>
+                <p className="transcript-text">{video.transcript}</p>
+              </div>
             )}
             <a className="tiktok-link" href={video.original_url} target="_blank" rel="noreferrer">
               Open on TikTok →
@@ -149,6 +157,15 @@ export default function PlayerView({ currentVideo, onShuffle, onTrueShuffle, onN
           disabled={!video}
         >
           2×
+        </button>
+        <button
+          className={`nav-btn${showCaptions ? ' nav-btn--active' : ''}`}
+          style={{ flex: 'none' }}
+          onClick={() => setShowCaptions(s => !s)}
+          disabled={!video || !video.transcript}
+          title={video?.transcript ? 'Toggle transcript' : 'No transcript available'}
+        >
+          CC
         </button>
         <AudioInfo info={audioInfo} />
       </aside>

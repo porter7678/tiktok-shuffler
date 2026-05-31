@@ -259,7 +259,7 @@ export default function App() {
           <input
             className="search-input"
             type="text"
-            placeholder="Search description or artist…"
+            placeholder="Search artist, description, or transcript…"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') commitSearch(searchInput) }}

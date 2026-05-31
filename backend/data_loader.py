@@ -63,12 +63,20 @@ def _load_info_metadata(video_dir: Path, video_id: str) -> dict:
     upload_date = None
     if raw_date and len(raw_date) == 8:
         upload_date = f"{raw_date[:4]}-{raw_date[4:6]}-{raw_date[6:]}"
+    transcript = None
+    txt_path = Path(video_dir) / f"{video_id}.txt"
+    try:
+        transcript = txt_path.read_text(encoding="utf-8").strip() or None
+    except FileNotFoundError:
+        pass
+
     return {
         "description": info.get("description") or None,
         "uploader": info.get("uploader") or None,
         "uploader_url": info.get("uploader_url") or None,
         "channel": info.get("channel") or None,
         "upload_date": upload_date,
+        "transcript": transcript,
     }
 
 

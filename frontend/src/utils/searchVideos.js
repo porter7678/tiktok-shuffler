@@ -19,10 +19,11 @@ export function searchVideos(videos, query) {
 
   const scored = []
   for (const v of videos) {
-    const uploader = (v.uploader  || '').toLowerCase()
-    const channel  = (v.channel   || '').toLowerCase()
-    const desc     = (v.description || '').toLowerCase()
-    const haystack = `${uploader} ${channel} ${desc}`
+    const uploader   = (v.uploader    || '').toLowerCase()
+    const channel    = (v.channel     || '').toLowerCase()
+    const desc       = (v.description || '').toLowerCase()
+    const transcript = (v.transcript  || '').toLowerCase()
+    const haystack   = `${uploader} ${channel} ${desc} ${transcript}`
 
     // Every term must appear somewhere (AND semantics)
     if (!terms.every(t => haystack.includes(t))) continue
@@ -36,6 +37,7 @@ export function searchVideos(videos, query) {
         else if (field.includes(t))   score = Math.max(score, 60)
       }
       if (desc.includes(t))           score = Math.max(score, 40)
+      if (transcript.includes(t))     score = Math.max(score, 20)
     }
     scored.push({ v, score })
   }
